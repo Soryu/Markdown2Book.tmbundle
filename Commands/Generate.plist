@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>saveActiveFile</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby -s
+
+require 'erb'
+
+def markdown_text (text)
+  text.gsub(/`(.*?)`/, '&lt;code&gt;\1&lt;/code&gt;')
+end
+
+def make_id (text)
+  text = text.gsub(/`(.*?)`/, '\1')
+  text.gsub!(/[- \/_]+/, '_')
+  text.gsub!(/[^a-zA-Z0-9_]+/, '')
+  text.downcase
+end
+
+Dir.chdir(ENV['TM_PROJECT_DIRECTORY'])
+
+$toc = [ "&lt;h1&gt;Table of Contents&lt;/h1&gt;" ]
+$chapters = [ ]
+
+$toc_template     = "templates/toc.rhtml"       if $toc_template.nil?
+$chapter_template = "templates/chapter.rhtml"   if $chapter_template.nil?
+$all_template     = "templates/all.rhtml"       if $all_template.nil?
+$output_dir       = "html"                      if $output_dir.nil?
+
+files = Dir.entries("pages").sort.grep(/.*\.markdown/)
+files.each_with_index do |file, i|
+
+  def html_link (markdown_file)
+    markdown_file.sub(/^(?:\d+ )?(.*?)\.markdown$/, '\1.html')
+  end
+
+  puts "• Convert #{file}…"
+  
+  $page_toc = [ ]
+
+  IO.popen('"' + ENV['TM_BUNDLE_SUPPORT'] + '/bin/MultiMarkdown.pl"| "' + ENV['TM_SUPPORT_PATH'] + '/bin/SmartyPants.pl"| "' + ENV['TM_BUNDLE_SUPPORT'] + '"/add_image_size.rb', "r+") do |f|
+
+    Thread.fork do
+      heading_stack = [ i ]
+      lastlevel = 0;
+      File.open("pages/#{file}").each_line do |line|
+
+        if(m = line.match(/^(#+)\s+(.*)$/))
+          level = m[1].length
+          title = m[2]
+
+          if heading_stack.length &lt; level
+            heading_stack.push(0)
+#             $toc.push("&lt;ol&gt;")
+          else
+            while heading_stack.length &gt; level
+              heading_stack.pop
+#               $toc.push("&lt;/ol&gt;")
+            end
+          end
+
+          heading_stack.push(heading_stack.pop + 1)
+          prefix = heading_stack.join(".")
+          puts("   #{prefix} #{title}")
+          
+          toc_entry = "#{"&lt;ul&gt;&lt;li&gt;" if(level &gt; lastlevel)}#{"&lt;/li&gt;&lt;li&gt;" if(level == lastlevel)}#{"&lt;/li&gt;&lt;/ul&gt;" * (lastlevel - level) if(level &lt; lastlevel)}&lt;span class='toc_number'&gt;#{prefix}&lt;/span&gt;&lt;a href='#{html_link file}##{make_id title}'&gt;#{markdown_text title}&lt;/a&gt;";
+
+          $toc.push(toc_entry)
+          $page_toc.push(toc_entry)
+          
+          f.write("#{m[1]} &lt;span id='#{make_id title}'&gt;#{prefix}&lt;/span&gt; #{title}")
+          lastlevel = level;
+        else
+          f.write(line)
+        end
+
+      end
+      
+      lastlevel.times {$page_toc.push("&lt;/li&gt;&lt;/ul&gt;")}
+      begin
+        f.write("\n"+File.open("markdown.references").read)
+      rescue
+        
+      end
+      f.close_write
+
+      lastlevel.times {$toc.push("&lt;/li&gt;&lt;/ul&gt;")}
+#       heading_stack.length.times { $toc.push("&lt;/ol&gt;") }
+    end
+
+    $page = { :title =&gt; %x{ grep '^#' 'pages/#{file}'|head -n1 }.sub(/^#+\s+(.*)\n/, '\1'), :content =&gt; f.read, :name =&gt; "chapter", :page_toc =&gt; $page_toc.join("\n") }
+    $prev = i &gt; 0 ? { :link =&gt; "#{html_link files[i-1]}", :title =&gt; markdown_text(%x{ grep '^#' 'pages/#{files[i-1]}'|head -n1 }.sub(/^#+\s+(.*)\n/, '\1')) } : nil
+    $next = i + 1 &lt; files.length  ? { :link =&gt; "#{html_link files[i+1]}", :title =&gt; markdown_text(%x{ grep '^#' 'pages/#{files[i+1]}'|head -n1 }.sub(/^#+\s+(.*)\n/, '\1')) } : nil
+
+    File.open("#{$output_dir}/#{html_link file}", "w") do |f|
+      f.write(ERB.new(File.open($chapter_template), 0, '&lt;&gt;').result)
+    end
+
+    $chapters.push($page)
+
+  end
+
+end
+
+$alltoc = { :toc =&gt; $toc.join("\n") }
+File.open("#{$output_dir}/all_pages.html", "w") do |f|
+  f.write(ERB.new(File.open($all_template), 0, '&lt;&gt;').result)
+end
+
+
+File.open("#{$output_dir}/index.html", "w") do |f|
+  $page = { :content =&gt; $toc.join("\n"), :name =&gt; "toc", :title =&gt; "Table of Contents" }
+  f.write(ERB.new(File.open($toc_template), 0, '&lt;&gt;').result)
+end
+</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^G</string>
+	<key>name</key>
+	<string>Generate</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>text.html.markdown</string>
+	<key>uuid</key>
+	<string>C445442D-06BF-4CEE-A642-6209B84632A6</string>
+</dict>
+</plist>

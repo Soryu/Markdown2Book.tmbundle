@@ -1,0 +1,1 @@
+This TextMate bundle is for compiling a Documentation project made of several Markdown files to HTML. It generates a TOC, a print version with all chapters on one page and HTML files for each chapter. You can use references to easily link between your pages.

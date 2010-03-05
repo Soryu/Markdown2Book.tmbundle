@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/bin/bash
+
+cd "$TM_PROJECT_DIRECTORY"
+
+if [ ! -f "markdown.references" ]; then touch "markdown.references"; fi
+
+all_refs=$(grep -ho '\[[^]]*\]\[[^]]*\]' pages/*.markdown|perl -pe 's/.*\[(.*)\]$/$1/'|sort|uniq)
+
+known_refs=$(grep '^\[.*\]' markdown.references|perl -pe 's/^\[(.*?)\].*/$1/')
+
+all_ptrn=$(tr &lt;&lt;&lt;"$all_refs" '\n' '|')
+known_ptrn=$(tr &lt;&lt;&lt;"$known_refs" '\n' '|')
+
+all_ptrn="${all_ptrn:0:${#all_ptrn}-1}"
+known_ptrn="${known_ptrn:0:${#known_ptrn}-1}"
+
+echo -e "Missing:\n"
+grep -Ev &lt;&lt;&lt;"$all_refs" "^($known_ptrn)$"|perl -pe 's/.*/[$&amp;]: MISSING/'|tee -a markdown.references
+
+echo -e "\nRedundant:\n"
+grep -Ev &lt;&lt;&lt;"$known_refs" "^($all_ptrn)$"
+</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^U</string>
+	<key>name</key>
+	<string>Update References</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>text</string>
+	<key>uuid</key>
+	<string>749EA16A-700B-43B3-9457-FA12D8301CAE</string>
+</dict>
+</plist>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>res=$(CocoaDialog dropdown --text "References" --items `cat "$TM_PROJECT_DIRECTORY/markdown.references"|sed 's/ /_/'` --button1 "Insert")
+
+[[ $(head -n1 &lt;&lt;&lt;"$res") == "2" ]] &amp;&amp; exit_discard
+
+res=$(tail -n1 &lt;&lt;&lt;"$res")
+
+let "res += 2"
+
+res=$(head -n "$res" "$TM_PROJECT_DIRECTORY/markdown.references" |tail -n 1)
+
+res=$(sed 's/\[\(.*\)\].*/[${1:Reference text}][\1]/'&lt;&lt;&lt;"$res")
+
+echo -n "$res"</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^l</string>
+	<key>name</key>
+	<string>Show References</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>text.html.markdown</string>
+	<key>uuid</key>
+	<string>3E0EDBF3-2018-46EA-95EE-C4EB20118789</string>
+</dict>
+</plist>

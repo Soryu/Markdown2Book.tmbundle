@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Markdown2Book</string>
+	<key>ordering</key>
+	<array>
+		<string>C445442D-06BF-4CEE-A642-6209B84632A6</string>
+		<string>749EA16A-700B-43B3-9457-FA12D8301CAE</string>
+		<string>3E0EDBF3-2018-46EA-95EE-C4EB20118789</string>
+		<string>B3AF90C8-A1B0-4583-A5E4-74374B68B015</string>
+		<string>B9B57AA0-0024-41F6-B6AE-C60FCDC1E8B1</string>
+	</array>
+	<key>uuid</key>
+	<string>FE3F62A4-6416-478F-957F-F17BECA563F6</string>
+</dict>
+</plist>
